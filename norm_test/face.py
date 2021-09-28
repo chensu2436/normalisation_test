@@ -9,7 +9,7 @@
 import sys
 import cv2
 
-sys.path.append("mtcnn-pytorch/")
+sys.path.append("/ext/mtcnn-pytorch/")
 from src import detect_faces
 from PIL import Image
 

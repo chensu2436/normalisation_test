@@ -29,7 +29,7 @@ class EosHeadPoseEstimator(object):
 
     def __init__(self):
         cwd = os.path.dirname(__file__)
-        base_dir = cwd + '/eos'
+        base_dir = cwd + '/ext/eos'
 
         model = eos.morphablemodel.load_model(base_dir + '/share/sfm_shape_3448.bin')
         self.blendshapes = eos.morphablemodel.load_blendshapes(

@@ -25,7 +25,7 @@ SOFTWARE.
 import os
 import cv2
 import numpy as np
-import face
+from face import face
 from KalmanFilter1D import Kalman1D
 from normalisation import normalize
 import scipy.io as sio
