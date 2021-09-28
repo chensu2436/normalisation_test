@@ -29,7 +29,7 @@ from face import face
 from KalmanFilter1D import Kalman1D
 from normalisation import normalize
 import scipy.io as sio
-from landmarks import landmarks
+# from landmarks import landmarks
 
 
 kalman_filters = list()
@@ -37,13 +37,6 @@ for point in range(2):
     # initialize kalman filters for different coordinates
     # will be used for face detection over a single object
     kalman_filters.append(Kalman1D(sz=100, R=0.01 ** 2))
-kalman_filters_landm = list()
-for point in range(68):
-    # initialize Kalman filters for different coordinates
-    # will be used to smooth landmarks over the face for a single face tracking
-    kalman_filters_landm.append(Kalman1D(sz=100, R=0.005 ** 2))
-
-landmarks_detector = landmarks()
 
 por = np.array([-127.790719, 4.621111, -12.025310]) # 3D gaze taraget position
 hr = np.array([[-0.11660857],[0.14517431],[-0.07825662]])
@@ -63,13 +56,7 @@ def detect_face(img):
         output_tracked = kalman_filters[1].update(face_location[2] + 1j * face_location[3])
         face_location[2], face_location[3] = np.real(output_tracked), np.imag(output_tracked)
 
-        # detect facial points
-        # pts = np.array([[551, 408], [603, 405], [698, 398], [755, 393], [603, 566], [724, 557]])
-        pts = landmarks_detector.detect(face_location, img)
-        # run Kalman filter on landmarks to smooth them
-        for i in range(68):
-            kalman_filters_landm_complex = kalman_filters_landm[i].update(pts[i, 0] + 1j * pts[i, 1])
-            pts[i, 0], pts[i, 1] = np.real(kalman_filters_landm_complex), np.imag(kalman_filters_landm_complex)
+        # skip detecting facial points (in total 68 points)
     return face_location
 
 
