@@ -38,13 +38,14 @@ for point in range(2):
     # will be used for face detection over a single object
     kalman_filters.append(Kalman1D(sz=100, R=0.01 ** 2))
 
+# hard coded values from example
 por = np.array([-127.790719, 4.621111, -12.025310]) # 3D gaze taraget position
 hr = np.array([[-0.11660857],[0.14517431],[-0.07825662]])
 ht = np.array([[11.53173266],[16.15314176],[431.66372868]])
 head_pose = (hr, ht)
 
 def detect_face(img):
-    # detect face
+    # detect face bounding box
     face_location = face.detect(img,  scale=0.25, use_max='SIZE')
     print(face_location)
 
@@ -58,6 +59,16 @@ def detect_face(img):
 
         # skip detecting facial points (in total 68 points)
     return face_location
+
+def preprocess_image(image):
+    ycrcb = cv2.cvtColor(image, cv2.COLOR_RGB2YCrCb)
+    ycrcb[:, :, 0] = cv2.equalizeHist(ycrcb[:, :, 0])
+    image = cv2.cvtColor(ycrcb, cv2.COLOR_YCrCb2RGB)
+    # cv2.imshow('processed patch', image)
+
+    image = np.transpose(image, [2, 0, 1])  # CxHxW
+    image = 2.0 * image / 255.0 - 1
+    return image
 
 
 if __name__ == '__main__':
@@ -77,8 +88,6 @@ if __name__ == '__main__':
     print("detecting face")
     face_location = detect_face(img)
 
-    
-
     entry = {
             'full_frame': img,
             '3d_gaze_target': por,
@@ -94,3 +103,5 @@ if __name__ == '__main__':
 
     print("finish executing")
     # cv2.imshow('raw patch', patch)
+    processed_patch = preprocess_image(patch)
+    processed_patch = processed_patch[np.newaxis, :, :, :]
