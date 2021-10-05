@@ -51,8 +51,6 @@ def predict(gaze_network, image, head_pose):
 # Load gaze network
 #################################
 ted_parameters_path = 'demo_weights/weights_ted.pth.tar'
-maml_parameters_path = 'demo_weights/weights_maml'
-k = 9
 
 # Set device
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
