@@ -47,7 +47,7 @@ head_pose = (hr, ht)
 def detect_face(img):
     # detect face bounding box - use mtcnn, can be replaced by our own detector
     face_location = face.detect(img,  scale=0.25, use_max='SIZE')
-    print(face_location)
+    print("face bounding box:", face_location)
 
     if len(face_location) > 0:
         # use kalman filter to smooth bounding box position
@@ -93,7 +93,7 @@ def get_inputs_wo_cam():
                                     int(face_location[3] - face_location[1]))
             }
     
-    print("normalizing")
+    print("normalizing image")
     [patch, h_n, g_n, inverse_M, gaze_cam_origin, gaze_cam_target] = normalize(entry, head_pose)
 
     return [patch, h_n, g_n, inverse_M, gaze_cam_origin, gaze_cam_target]

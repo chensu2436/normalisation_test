@@ -3,11 +3,28 @@ import torch
 import os
 import numpy as np
 import cv2
+import math
 from test_with_cam_matrix import get_inputs_w_cam
 from test_without_cam_matrix import get_inputs_wo_cam
 
 import warnings
 warnings.filterwarnings("ignore")
+
+
+def mean_angle_loss(pred, truth):
+    '''
+    :param pred,truth: type=torch.Tensor
+    :return:
+    '''
+    ans = 0
+    for i in range(len(pred)):
+        p_x, p_y, p_z = (pred[i][j] for j in range(3))
+        t_x, t_y, t_z = (truth[i][j] for j in range(3))
+        # print("p_x={}, p_y={}, p_z={}".format(p_x, p_y, p_z))
+        # print("t_x={}, t_y={}, t_z={}".format(t_x, t_y, t_z))
+        angles = (p_x * t_x + p_y * t_y + p_z * t_z)/(math.sqrt(p_x**2+p_y**2+p_z**2) * math.sqrt(t_x**2+t_y**2+t_z**2))
+        ans += math.acos(angles) * 180 / np.pi
+    return ans / len(pred)
 
 def preprocess_image(image):
     ycrcb = cv2.cvtColor(image, cv2.COLOR_RGB2YCrCb)
@@ -80,8 +97,14 @@ print('finish loading model')
 # Test images
 [patch1, h_n, g_n, inverse_M, gaze_cam_origin, gaze_cam_target] = get_inputs_w_cam()
 gaze1 = predict(gaze_network, patch1, h_n)
-print(gaze1)
+print("with adjusting to camera matrix:", gaze1)
+print("h_n:", h_n)
+print("ground truth:", g_n)
+print("mean angle loss:", mean_angle_loss([gaze1], [g_n]))
 
 [patch2, h_n, g_n, inverse_M, gaze_cam_origin, gaze_cam_target] = get_inputs_wo_cam()
 gaze2 = predict(gaze_network, patch2, h_n)
-print(gaze2)
+print("without ajusting to camera matrix", gaze2)
+print("h_n:", h_n)
+print("ground truth:", g_n)
+print("mean angle loss:", mean_angle_loss([gaze2], [g_n]))
