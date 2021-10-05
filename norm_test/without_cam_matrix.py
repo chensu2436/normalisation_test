@@ -27,7 +27,7 @@ import cv2
 import numpy as np
 from face import face
 from KalmanFilter1D import Kalman1D
-from normalisation import normalize
+from normalisation_wo_cam import normalize
 import scipy.io as sio
 # from landmarks import landmarks
 
@@ -72,19 +72,14 @@ def preprocess_image(image):
 
 
 if __name__ == '__main__':
+    '''
+    steps removed: (1) undistort (2) transformation matrix W does not have inverse of camera matrix(C)
+    W = NSR
+    '''
     
-    # todo: need to figure out how to get camera params in actual scenario
-    print("reading camera param")
-    cameraCalib = sio.loadmat('../data/calibration/cameraCalib.mat')
-    camera_matrix = cameraCalib['cameraMatrix'] # shape (3,3)
-    camera_distortion = cameraCalib['distCoeffs']
-    fx, _, cx, _, fy, cy, _, _, _ = camera_matrix.flatten()
-    camera_parameters = np.asarray([fx, fy, cx, cy])
-
     print("reading image")
     filepath = os.path.join('../data/example/day01_0087.jpg')
     img = cv2.imread(filepath)
-    img = cv2.undistort(img, camera_matrix, camera_distortion)
 
     print("detecting face")
     face_location = detect_face(img)
@@ -92,7 +87,6 @@ if __name__ == '__main__':
     entry = {
             'full_frame': img,
             '3d_gaze_target': por,
-            'camera_parameters': camera_parameters,
             'full_frame_size': (img.shape[0], img.shape[1]),
             'face_bounding_box': (int(face_location[0]), int(face_location[1]),
                                     int(face_location[2] - face_location[0]),
