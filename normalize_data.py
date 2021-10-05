@@ -104,7 +104,14 @@ if __name__ == '__main__':
     # load example
     filepath = os.path.join('./data/example/day01_0087.jpg')
     img_original = cv2.imread(filepath)
+    cv2.imshow('original', img_original)
+    cv2.waitKey(3000)
+    cv2.destroyAllWindows()
+    
     img = cv2.undistort(img_original, camera_matrix, camera_distortion)
+    cv2.imshow('image_undistort', img)
+    cv2.waitKey(3000)
+    cv2.destroyAllWindows()
     # load the detected facial landmarks
     # this code does not contain facial landmark detection
     landmarks = np.array([[551, 408], [603, 405], [698, 398], [755, 393], [603, 566], [724, 557]])
