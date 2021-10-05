@@ -6,6 +6,9 @@ import cv2
 from test_with_cam_matrix import get_inputs_w_cam
 from test_without_cam_matrix import get_inputs_wo_cam
 
+import warnings
+warnings.filterwarnings("ignore")
+
 def preprocess_image(image):
     ycrcb = cv2.cvtColor(image, cv2.COLOR_RGB2YCrCb)
     ycrcb[:, :, 0] = cv2.equalizeHist(ycrcb[:, :, 0])
@@ -47,15 +50,12 @@ def predict(gaze_network, image, head_pose):
     return g_cnn
 
 
-#################################
-# Load gaze network
-#################################
+'''
+Load demo weights
+'''
 ted_parameters_path = 'demo_weights/weights_ted.pth.tar'
-
-# Set device
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-# Create network
 from models import DTED
 gaze_network = DTED(
     growth_rate=32,
@@ -68,21 +68,13 @@ gaze_network = DTED(
     backprop_gaze_to_encoder=False,
 ).to(device)
 
-#################################
-
-# Load T-ED weights if available
-assert os.path.isfile(ted_parameters_path)
-print('> Loading: %s' % ted_parameters_path)
 ted_weights = torch.load(ted_parameters_path)
 if torch.cuda.device_count() == 1:
     if next(iter(ted_weights.keys())).startswith('module.'):
         ted_weights = dict([(k[7:], v) for k, v in ted_weights.items()])
-
-
 gaze_network.load_state_dict(ted_weights)
-print('finish loading model')
 
-#####################################
+print('finish loading model')
 
 
 # Test images
