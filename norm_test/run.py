@@ -11,6 +11,13 @@ import warnings
 warnings.filterwarnings("ignore")
 
 
+def pitchyaw_to_vector(pitchyaw):
+    vector = np.zeros((3, 1))
+    vector[0, 0] = np.cos(pitchyaw[0]) * np.sin(pitchyaw[1])
+    vector[1, 0] = np.sin(pitchyaw[0])
+    vector[2, 0] = np.cos(pitchyaw[0]) * np.cos(pitchyaw[1])
+    return vector
+
 def mean_angle_loss(pred, truth):
     '''
     :param pred,truth: type=torch.Tensor
@@ -60,7 +67,7 @@ def predict(gaze_network, image, head_pose):
     g_cnn = output
     g_cnn = g_cnn.reshape(3, 1)
     g_cnn /= np.linalg.norm(g_cnn)
-    g_cnn = -g_cnn
+    g_cnn = g_cnn
     # print("g_n: {} , g_cnn: {}".format(right_gaze, g_cnn))
     # print("g_n shape: {}, g_cnn shape: {}".format(right_gaze.shape, g_cnn.shape))
     
@@ -99,12 +106,14 @@ print('finish loading model')
 gaze1 = predict(gaze_network, patch1, h_n)
 print("with adjusting to camera matrix:", gaze1)
 print("h_n:", h_n)
-print("ground truth:", g_n)
-print("mean angle loss:", mean_angle_loss([gaze1], [g_n]))
+gaze_vector = pitchyaw_to_vector(g_n)
+print("ground truth:", gaze_vector)
+print("mean angle loss:", mean_angle_loss([gaze1], [gaze_vector]))
 
 [patch2, h_n, g_n, inverse_M, gaze_cam_origin, gaze_cam_target] = get_inputs_wo_cam()
 gaze2 = predict(gaze_network, patch2, h_n)
 print("without ajusting to camera matrix", gaze2)
 print("h_n:", h_n)
-print("ground truth:", g_n)
-print("mean angle loss:", mean_angle_loss([gaze2], [g_n]))
+gaze_vector = pitchyaw_to_vector(g_n)
+print("ground truth:", gaze_vector)
+print("mean angle loss:", mean_angle_loss([gaze2], [gaze_vector]))

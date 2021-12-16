@@ -64,7 +64,6 @@ def detect_face(img):
 
 
 def get_inputs_w_cam():
-    # todo: need to figure out how to get camera params in actual scenario
     print("reading camera param")
     cameraCalib = sio.loadmat('../data/calibration/cameraCalib.mat')
     camera_matrix = cameraCalib['cameraMatrix'] # shape (3,3)
@@ -95,4 +94,3 @@ def get_inputs_w_cam():
 
     return [patch, h_n, g_n, inverse_M, gaze_cam_origin, gaze_cam_target]
 
-    
