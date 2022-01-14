@@ -10,6 +10,7 @@ def get_cam_params():
     camera_distortion = cameraCalib['distCoeffs']
     fx, _, cx, _, fy, cy, _, _, _ = camera_matrix.flatten()
     camera_parameters = np.asarray([fx, fy, cx, cy])
+    # print(camera_matrix, camera_distortion, camera_parameters)
     return camera_matrix, camera_distortion, camera_parameters
 
 def get_undistorted_image(camera_matrix, camera_distortion):
@@ -21,7 +22,8 @@ def get_undistorted_image(camera_matrix, camera_distortion):
 
 def load_face_model():
     print("loading face model")
-    return sio.loadmat('../data/faceModelGeneric.mat')['model']
+    face_model = sio.loadmat('../data/faceModelGeneric.mat')['model'] # shape (3,6)
+    return face_model
 
 def get_face_points_bbox():
     print("loading face points")
@@ -42,14 +44,14 @@ def get_face_points_bbox():
 def get_head_pose(face, points, camera_matrix, camera_distortion):
     print("estimating head pose")
     num_pts = face.shape[1]
-    facePts = face.T.reshape(num_pts, 1, 3)
+    facePts = face.T.reshape(num_pts, 1, 3) # shape (6,3) → 3D positions of 6 landmarks
     landmarks = points.astype(np.float32)
     landmarks = landmarks.reshape(num_pts, 1, 2)
+    # print(landmarks)
     ret, rvec, tvec = cv2.solvePnP(facePts, landmarks, camera_matrix, camera_distortion, flags=cv2.SOLVEPNP_EPNP)
-    
+
     ## further optimize
     ret, rvec, tvec = cv2.solvePnP(facePts, landmarks, camera_matrix, camera_distortion, rvec, tvec, True)
-
     return rvec, tvec
 
 def common_pre(entry, head_pose):
@@ -122,6 +124,7 @@ def normalize(entry, head_pose):
     # Correct head pose
     head_mat = R * rotate_mat
     n_h = np.array([np.arcsin(head_mat[1, 2]), np.arctan2(head_mat[0, 2], head_mat[2, 2])])
+    print(n_h)
 
     return patch, n_h
 
@@ -130,10 +133,15 @@ def normalize(entry, head_pose):
 camera_matrix, camera_distortion, camera_parameters = get_cam_params()
 img = get_undistorted_image(camera_matrix, camera_distortion)
 face = load_face_model()
+# with open('face_model.txt', 'w+') as f:
+#     for line in face:
+#         for num in line:
+#             f.write('{}\n'.format(num))
 face_points, bbox = get_face_points_bbox()
+# print(face_points)
 hr, ht = get_head_pose(face, face_points, camera_matrix, camera_distortion)
 
-print("hr={}, ht={}".format(hr, ht))
+# print("hr={}, ht={}".format(hr, ht))
 
 entry = {
             'full_frame': img,
@@ -143,5 +151,5 @@ entry = {
 patch, n_h = normalize(entry, (hr, ht))
 patch_rgb = cv2.cvtColor(patch,cv2.COLOR_BGR2RGB)
 cv2.imshow('normalized_eye_patch', patch_rgb)
-cv2.waitKey(3000)
+cv2.waitKey(5000)
 cv2.destroyAllWindows()
