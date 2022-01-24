@@ -6,7 +6,7 @@ Load demo weights
 ted_parameters_path = '../demo_weights/weights_ted.pth.tar'
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-from .dt_ed import DTED
+from models import DTED
 gaze_network = DTED(
     growth_rate=32,
     z_dim_app=64,
