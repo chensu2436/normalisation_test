@@ -3,7 +3,7 @@ import torch
 '''
 Load demo weights
 '''
-ted_parameters_path = '../demo_weights/weights_ted.pth.tar'
+ted_parameters_path = 'demo_weights/weights_ted.pth.tar'
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 from models import DTED
