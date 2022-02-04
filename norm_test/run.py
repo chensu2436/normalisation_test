@@ -11,6 +11,27 @@ import time
 import warnings
 warnings.filterwarnings("ignore")
 
+# Functions to calculate relative rotation matrices for gaze dir. and head pose
+def R_x(theta):
+    sin_ = np.sin(theta)
+    cos_ = np.cos(theta)
+    return np.array([
+        [1., 0., 0.],
+        [0., cos_, -sin_],
+        [0., sin_, cos_]
+    ]).astype(np.float32)
+
+def R_y(phi):
+    sin_ = np.sin(phi)
+    cos_ = np.cos(phi)
+    return np.array([
+        [cos_, 0., sin_],
+        [0., 1., 0.],
+        [-sin_, 0., cos_]
+    ]).astype(np.float32)
+
+def calculate_rotation_matrix(e):
+    return np.matmul(R_y(e[1]), R_x(e[0]))
 
 def pitchyaw_to_vector(pitchyaw):
     vector = np.zeros((3, 1))
@@ -48,12 +69,14 @@ def predict(gaze_network, image, head_pose):
     processed_patch = preprocess_image(image)
     processed_patch = processed_patch[np.newaxis, :, :, :]
     # print("patch shape: {}".format(patch.shape))
+    R_head_a = calculate_rotation_matrix(head_pose)
+    R_gaze_a = np.zeros((1, 3, 3))
     input_dict = {
             'image_a': processed_patch,
             'gaze_a': [],
             'head_a': head_pose,
-            'R_gaze_a': [],
-            'R_head_a': [],
+            'R_gaze_a': R_gaze_a,
+            'R_head_a': R_head_a,
     }
 
     # compute eye gaze and point of regard
