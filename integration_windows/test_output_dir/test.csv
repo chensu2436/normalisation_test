@@ -1,4 +1,4 @@
-image_file	h_x	h_y
-norm1.png	0.287368	-0.00703111
-norm2.png	0.0758598	0.313796
-norm3.png	0.127762	-0.370843
+image_file,h_x,h_y
+norm1.png,0.287368,-0.00703111
+norm2.png,0.0758598,0.313796
+norm3.png,0.127762,-0.370843
