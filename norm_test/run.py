@@ -6,10 +6,32 @@ import cv2
 import math
 from test_with_cam_matrix import get_inputs_w_cam
 from test_without_cam_matrix import get_inputs_wo_cam
+import time
 
 import warnings
 warnings.filterwarnings("ignore")
 
+# Functions to calculate relative rotation matrices for gaze dir. and head pose
+def R_x(theta):
+    sin_ = np.sin(theta)
+    cos_ = np.cos(theta)
+    return np.array([
+        [1., 0., 0.],
+        [0., cos_, -sin_],
+        [0., sin_, cos_]
+    ]).astype(np.float32)
+
+def R_y(phi):
+    sin_ = np.sin(phi)
+    cos_ = np.cos(phi)
+    return np.array([
+        [cos_, 0., sin_],
+        [0., 1., 0.],
+        [-sin_, 0., cos_]
+    ]).astype(np.float32)
+
+def calculate_rotation_matrix(e):
+    return np.matmul(R_y(e[1]), R_x(e[0]))
 
 def pitchyaw_to_vector(pitchyaw):
     vector = np.zeros((3, 1))
@@ -47,12 +69,14 @@ def predict(gaze_network, image, head_pose):
     processed_patch = preprocess_image(image)
     processed_patch = processed_patch[np.newaxis, :, :, :]
     # print("patch shape: {}".format(patch.shape))
+    R_head_a = calculate_rotation_matrix(head_pose)
+    R_gaze_a = np.zeros((1, 3, 3))
     input_dict = {
             'image_a': processed_patch,
             'gaze_a': [],
             'head_a': head_pose,
-            'R_gaze_a': [],
-            'R_head_a': [],
+            'R_gaze_a': R_gaze_a,
+            'R_head_a': R_head_a,
     }
 
     # compute eye gaze and point of regard
@@ -77,6 +101,7 @@ def predict(gaze_network, image, head_pose):
 '''
 Load demo weights
 '''
+start_time = time.time()
 ted_parameters_path = 'demo_weights/weights_ted.pth.tar'
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -91,29 +116,34 @@ gaze_network = DTED(
     normalize_3d_codes_axis=1,
     backprop_gaze_to_encoder=False,
 ).to(device)
-
+end_time_1 = time.time()
 ted_weights = torch.load(ted_parameters_path)
 if torch.cuda.device_count() == 1:
     if next(iter(ted_weights.keys())).startswith('module.'):
         ted_weights = dict([(k[7:], v) for k, v in ted_weights.items()])
 gaze_network.load_state_dict(ted_weights)
-
+end_time_2 = time.time()
 print('finish loading model')
 
+print('getting model: {}'.format(end_time_1 - start_time))
+print('loading weights: {}'.format(end_time_2 - end_time_1))
 
 # Test images
 [patch1, h_n, g_n, inverse_M, gaze_cam_origin, gaze_cam_target] = get_inputs_w_cam()
+start_time = time.time()
 gaze1 = predict(gaze_network, patch1, h_n)
-print("with adjusting to camera matrix:", gaze1)
-print("h_n:", h_n)
+end_time = time.time()
+# print("with adjusting to camera matrix:", gaze1)
+# print("h_n:", h_n)
 gaze_vector = pitchyaw_to_vector(g_n)
 print("ground truth:", gaze_vector)
 print("mean angle loss:", mean_angle_loss([gaze1], [gaze_vector]))
+print('predicting 1 image: {}'.format(end_time - start_time))
 
-[patch2, h_n, g_n, inverse_M, gaze_cam_origin, gaze_cam_target] = get_inputs_wo_cam()
-gaze2 = predict(gaze_network, patch2, h_n)
-print("without ajusting to camera matrix", gaze2)
-print("h_n:", h_n)
-gaze_vector = pitchyaw_to_vector(g_n)
-print("ground truth:", gaze_vector)
-print("mean angle loss:", mean_angle_loss([gaze2], [gaze_vector]))
+# [patch2, h_n, g_n, inverse_M, gaze_cam_origin, gaze_cam_target] = get_inputs_wo_cam()
+# gaze2 = predict(gaze_network, patch2, h_n)
+# print("without ajusting to camera matrix", gaze2)
+# print("h_n:", h_n)
+# gaze_vector = pitchyaw_to_vector(g_n)
+# print("ground truth:", gaze_vector)
+# print("mean angle loss:", mean_angle_loss([gaze2], [gaze_vector]))
