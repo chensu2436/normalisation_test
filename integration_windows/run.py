@@ -103,10 +103,10 @@ if __name__ == "__main__":
     for i in df.index:
         image = cv2.imread(dir_name + "/" + df['image_file'][i])
         head_pose = (float(df['h_x'][i]), float(df['h_y'][i]))
-        gaze = predict(gaze_model, image, head_pose)
-        gaze_x.append(gaze[0])
-        gaze_y.append(gaze[1])
-        gaze_z.append(gaze[2])
+        gaze = predict(gaze_model, image, head_pose) # returns a 3x1 numpy matrix
+        gaze_x.append(gaze[0][0])
+        gaze_y.append(gaze[1][0])
+        gaze_z.append(gaze[2][0])
 
     
     df['gaze_x'] = gaze_x
