@@ -93,13 +93,15 @@ def init_model():
 
 if __name__ == "__main__":
     gaze_model = init_model()
-    df = pd.read_csv(sys.argv[1])
+    dir_name = sys.argv[1]
+    csv_file = dir_name + "/test.csv"
+    df = pd.read_csv(csv_file)
     gaze_x = []
     gaze_y = []
     gaze_z = []
 
     for i in df.index:
-        image = cv2.imread(df['image_file'][i])
+        image = cv2.imread(dir_name + "/" + df['image_file'][i])
         head_pose = (float(df['h_x'][i]), float(df['h_y'][i]))
         gaze = predict(gaze_model, image, head_pose)
         gaze_x.append(gaze[0])
@@ -110,7 +112,7 @@ if __name__ == "__main__":
     df['gaze_x'] = gaze_x
     df['gaze_y'] = gaze_y
     df['gaze_z'] = gaze_z
-    df.to_csv(sys.argv[1], index=False)
+    df.to_csv(csv_file, index=False)
         
 
 
